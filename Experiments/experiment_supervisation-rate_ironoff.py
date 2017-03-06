@@ -154,39 +154,20 @@ def set_param_trainability( layer, btrain=True ):
 def show_params(layer):
 	print(lasagne.layers.get_all_param_values(layer))
 
-def build_mlp(input_var=None):
-	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
-	
-	l_h1 = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_in, p=0.2), num_units=800, nonlinearity=lasagne.nonlinearities.rectify)
-	l_h2 = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_h1, p=0.5), num_units=800, nonlinearity=lasagne.nonlinearities.rectify)
-	l_outclass = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_h2, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.softmax)
-	return l_outclass
-	
-def build_cnn(input_var=None):
-	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
-	# print(lasagne.layers.get_output_shape(l_in))
-	l_c1 = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotNormal() )
-	l_c1p = lasagne.layers.MaxPool2DLayer(l_c1, pool_size=(2,2) )
-	l_c2 = lasagne.layers.Conv2DLayer( l_c1p, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal() )
-	l_le = lasagne.layers.Conv2DLayer( l_c2, num_filters=16, filter_size=(1,1), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal() )
-	
-	# l_cclass = lasagne.layers.FlattenLayer(l_cclass, outdim=2, )
-	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_le, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.softmax)
-	
-	# print("output class:", lasagne.layers.get_output_shape(l_cclass))
-	
-	# print("output reconstruction:",lasagne.layers.get_output_shape(l_out))
-	return l_outclass
 
-def mlp_ironoff(input_var=None):
+##############################
+### CHAR OR DIGIT OR BLANK ###
+##############################
+
+def build_mlp_charorblank(input_var=None):
 	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
 	
 	l_net = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_in, p=0.2), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
 	l_net = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_net, p=0.5), num_units=512, nonlinearity=lasagne.nonlinearities.rectify)
-	l_outclass = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_net, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	l_outclass = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_net, p=0.5), num_units=3, nonlinearity=lasagne.nonlinearities.sigmoid)
 	return l_outclass
 	
-def cnn_ironoff(input_var=None):
+def build_cnn_charorblank(input_var=None):
 	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
 	# print(lasagne.layers.get_output_shape(l_in))
 	
@@ -202,7 +183,7 @@ def cnn_ironoff(input_var=None):
 	# l_cclass = lasagne.layers.FlattenLayer(l_cclass, outdim=2, )
 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=512, nonlinearity=lasagne.nonlinearities.rectify)
-	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=3, nonlinearity=lasagne.nonlinearities.sigmoid)
 	
 	# print("output class:", lasagne.layers.get_output_shape(l_cclass))
 	
@@ -210,12 +191,12 @@ def cnn_ironoff(input_var=None):
 	return l_outclass
 
 
-def cae_ironoff(input_var=None):
+def build_cae_charorblank(input_var=None):
 	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
 	# print(lasagne.layers.get_output_shape(l_in)
 	print("\t", lasagne.layers.get_output_shape(l_in))
 	
-	l_net = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform(), pad='same' )
+	l_net = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform() )
 	print("\t", lasagne.layers.get_output_shape(l_net))
 	
 	l_net = lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
@@ -253,18 +234,18 @@ def cae_ironoff(input_var=None):
 	print("output reconstruction:",lasagne.layers.get_output_shape(l_out))
 	return l_out, l_le
 
-def mlp_out_ironoff(input_var=None):
+def build_mlp_out_charorblank(input_var=None):
 	l_le = lasagne.layers.InputLayer(shape=(None, 128, 7, 7), input_var=input_var)
 	l_net = lasagne.layers.Upscale2DLayer( l_le, scale_factor=2, mode='repeat')
 # 	print("\t", lasagne.layers.get_output_shape(l_net))
 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=512, nonlinearity=lasagne.nonlinearities.rectify)
-	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.5), num_units=3, nonlinearity=lasagne.nonlinearities.sigmoid)
 	print("input classifier:",lasagne.layers.get_output_shape(l_le))
 	print("output classifier:",lasagne.layers.get_output_shape(l_outclass))
 	return l_outclass
 
-def cnn_out_ironoff(input_var=None):
+def build_cnn_out_charorblank(input_var=None):
 	l_le = lasagne.layers.InputLayer(shape=(None, 128, 7, 7), input_var=input_var)
 	print("\t", lasagne.layers.get_output_shape(l_le))
 
@@ -284,6 +265,176 @@ def cnn_out_ironoff(input_var=None):
 	print("\t", lasagne.layers.get_output_shape(l_net))
 	l_outseg = lasagne.layers.FeaturePoolLayer( l_net, 32, pool_function=theano.tensor.max )
 	print("output segmentation:",lasagne.layers.get_output_shape(l_outseg))
+	return l_outseg
+
+##############################
+###  CHAR CLASSIFICATION  ###
+##############################
+
+def build_mlp(input_var=None):
+	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
+	
+	l_h1 = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_in, p=0.2), num_units=800, nonlinearity=lasagne.nonlinearities.rectify)
+	l_h2 = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_h1, p=0.5), num_units=800, nonlinearity=lasagne.nonlinearities.rectify)
+	l_outclass = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_h2, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.softmax)
+	return l_outclass
+	
+def build_cnn(input_var=None):
+	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
+	# print(lasagne.layers.get_output_shape(l_in))
+	l_c1 = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotNormal() )
+	l_c1p = lasagne.layers.MaxPool2DLayer(l_c1, pool_size=(2,2) )
+	l_c2 = lasagne.layers.Conv2DLayer( l_c1p, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal() )
+	l_le = lasagne.layers.Conv2DLayer( l_c2, num_filters=16, filter_size=(1,1), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal() )
+	
+	# l_cclass = lasagne.layers.FlattenLayer(l_cclass, outdim=2, )
+	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_le, p=0.5), num_units=63, nonlinearity=lasagne.nonlinearities.softmax)
+	
+	# print("output class:", lasagne.layers.get_output_shape(l_cclass))
+	
+	# print("output reconstruction:",lasagne.layers.get_output_shape(l_out))
+	return l_outclass
+
+def build_mlp_ironoff(input_var=None):
+	print("mlp_ironoff")
+	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
+	print("\t", lasagne.layers.get_output_shape(l_in), "<- input")
+	
+	l_net = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_in, p=0.2), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_net = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_net, p=0.2), num_units=512, nonlinearity=lasagne.nonlinearities.rectify)
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_outclass = lasagne.layers.DenseLayer( lasagne.layers.dropout(l_net, p=0.0), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	print("\t", lasagne.layers.get_output_shape(l_outclass), "<- output")
+	return l_outclass
+	
+def build_cnn_ironoff(input_var=None):
+	print("cnn_ironoff")
+	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
+	print("\t", lasagne.layers.get_output_shape(l_in), "<- input")
+	
+	l_net = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform(), pad='same' )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_net = lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.Conv2DLayer( l_net, num_filters=64, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform(), pad='same' )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_net = lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.Conv2DLayer( l_net, num_filters=64, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform(), pad='same' )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+# 	l_net = lasagne.layers.Conv2DLayer( l_net, num_filters=128, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform(), pad='same' )
+# 	l_net= lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
+	
+	# l_cclass = lasagne.layers.FlattenLayer(l_cclass, outdim=2, )
+# 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.2), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.2), num_units=128, nonlinearity=lasagne.nonlinearities.rectify)
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.0), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	print("\t", lasagne.layers.get_output_shape(l_outclass), "<- output")
+	
+	# print("output class:", lasagne.layers.get_output_shape(l_cclass))
+	
+	# print("output reconstruction:",lasagne.layers.get_output_shape(l_out))
+	return l_outclass
+
+
+def build_cae_ironoff(input_var=None):
+	print("conv-autoencoder_ironoff")
+
+	l_in = lasagne.layers.InputLayer(shape=(None, 1, 28, 28), input_var=input_var)
+	print("\t", lasagne.layers.get_output_shape(l_in), "<- input")
+	
+	l_net = lasagne.layers.Conv2DLayer(l_in, num_filters=32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.Conv2DLayer( l_net, num_filters=64, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.MaxPool2DLayer(l_net, pool_size=(2,2) )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_le = lasagne.layers.Conv2DLayer( l_net, num_filters=128, filter_size=(4,4), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_le), "<- local encodage")
+	
+# 	l_net = lasagne.layers.Deconv2DLayer( l_le, num_filters=64, filter_size=(1,1), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform(), crop='same' )
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+# 	l_net = lasagne.layers.Upscale2DLayer( l_net, scale_factor=2, mode='repeat')
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+# 	l_net = lasagne.layers.Upscale2DLayer( l_le, scale_factor=4, mode='repeat')
+# 	print("\t", lasagne.layers.get_output_shape( l_net ))
+	
+	l_net = lasagne.layers.Deconv2DLayer( l_le, 64, filter_size=(4,4), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.Upscale2DLayer( l_net, scale_factor=2, mode='repeat')
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	
+	l_net = lasagne.layers.Deconv2DLayer( l_net, 32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_net = lasagne.layers.Upscale2DLayer( l_net, scale_factor=2, mode='repeat')
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_net = lasagne.layers.Deconv2DLayer( l_net, 32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotUniform() )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_out = lasagne.layers.FeaturePoolLayer( l_net, 32, pool_function=theano.tensor.max )
+	
+# 	print("output LE:", lasagne.layers.get_output_shape(l_le))
+	
+	print("\t", lasagne.layers.get_output_shape(l_out), "<- output")
+	return l_out, l_le
+
+def build_mlp_out_ironoff(input_var=None):
+	print("mlp_local-feature_ironoff")
+	l_le = lasagne.layers.InputLayer(shape=(None, 128, 1, 1), input_var=input_var)
+	print("\t", lasagne.layers.get_output_shape(l_le), "<- input")
+# 	l_net = lasagne.layers.Upscale2DLayer( l_le, scale_factor=2, mode='repeat')
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+# 	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_le, p=0.2), num_units=1024, nonlinearity=lasagne.nonlinearities.rectify)
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_net = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_le, p=0.2), num_units=128, nonlinearity=lasagne.nonlinearities.rectify)
+	print("\t", lasagne.layers.get_output_shape(l_net))
+	l_outclass = lasagne.layers.DenseLayer(lasagne.layers.dropout(l_net, p=0.0), num_units=63, nonlinearity=lasagne.nonlinearities.sigmoid)
+	print("\t", lasagne.layers.get_output_shape(l_outclass), "<- output")
+# 	print("input classifier:",lasagne.layers.get_output_shape(l_le))
+# 	print("output classifier:",lasagne.layers.get_output_shape(l_outclass))
+	return l_outclass
+
+def build_cnn_out_ironoff(input_var=None):
+	print("seg_local-feature_ironoff")
+	l_le = lasagne.layers.InputLayer(shape=(None, 128, 7, 7), input_var=input_var)
+	print("\t", lasagne.layers.get_output_shape(l_le), "<- input")
+
+	l_net = lasagne.layers.Upscale2DLayer( l_le, scale_factor=2, mode='repeat')
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+# 	l_net = lasagne.layers.Deconv2DLayer( l_le, num_filters=64, filter_size=(1,1), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal() )
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+# 	l_net = lasagne.layers.Upscale2DLayer( l_net, scale_factor=2, mode='repeat')
+# 	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_net = lasagne.layers.Deconv2DLayer( l_net, 64, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify , W=lasagne.init.GlorotNormal(), crop='same' )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_net = lasagne.layers.Upscale2DLayer( l_net, scale_factor=2, mode='repeat')
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_net = lasagne.layers.Deconv2DLayer( l_net, 32, filter_size=(5,5), nonlinearity=lasagne.nonlinearities.rectify, W=lasagne.init.GlorotNormal(), crop='same' )
+	print("\t", lasagne.layers.get_output_shape(l_net))
+
+	l_outseg = lasagne.layers.FeaturePoolLayer( l_net, 32, pool_function=theano.tensor.max )
+	print("\t", lasagne.layers.get_output_shape(l_outseg), "<- output")
+# 	print("output segmentation:",lasagne.layers.get_output_shape(l_outseg))
 	return l_outseg
 
 
@@ -352,6 +503,9 @@ simple copy of the function iterate_minibatches(...) of the lasagne/examples/mni
 
 def iterate_minibatches(inputs, targets, classes, segmentations, batchsize, shuffle=False):
 	assert len(inputs) == len(targets)
+	if len(inputs) <= batchsize:
+		if not len(inputs) == 0:
+			batchsize = len(inputs)
 	if shuffle:
 		indices = np.arange(len(inputs))
 		np.random.shuffle(indices)
@@ -417,13 +571,31 @@ def main():
 #	class_var = T.ivector('classes')
 	class_var = T.dmatrix('classes')
 	seg_var = T.tensor4('segmentations')
-	
-	network_mlp = mlp_ironoff(input_var)
-	network_cnn = cnn_ironoff(input_var)
-	network_recon, network_le = cae_ironoff(input_var)
+
+	network_mlp = build_mlp_ironoff(input_var)
+	network_cnn = build_cnn_ironoff(input_var)
+	network_recon, network_le = build_cae_ironoff(input_var)
 	out_le = lasagne.layers.get_output( network_le, deterministic=True )
-	network_class = mlp_out_ironoff(out_le)
-	network_seg = cnn_out_ironoff(out_le)
+	network_class = build_mlp_out_ironoff(out_le)
+	
+	network_recon_total, network_le_total = build_cae_ironoff(input_var)
+	out_le_total = lasagne.layers.get_output( network_le_total, deterministic=True )
+	network_class_total = build_mlp_out_ironoff(out_le_total)
+	
+# 	network_seg = build_cnn_out_ironoff(out_le)
+
+
+# 	network_mlp = build_mlp_charorblank(input_var)
+# 	network_cnn = build_cnn_charorblank(input_var)
+# 	network_recon, network_le = build_cae_charorblank(input_var)
+# 	out_le = lasagne.layers.get_output( network_le, deterministic=True )
+# 	network_class = build_mlp_out_charorblank(out_le)
+# 	
+# 	network_recon_total, network_le_total = build_cae_charorblank(input_var)
+# 	out_le_total = lasagne.layers.get_output( network_le_total, deterministic=True )
+# 	network_class_total = build_mlp_out_charorblank(out_le_total)
+# 	
+# 	network_seg = build_cnn_out_charorblank(out_le)
 
 # 	network_mlp = build_mlp(input_var)
 # 	network_cnn = build_cnn(input_var)
@@ -436,13 +608,17 @@ def main():
 	params_init_network_recon = lasagne.layers.get_all_param_values(network_recon)
 	params_init_network_class = lasagne.layers.get_all_param_values(network_class)
 	params_init_network_le = lasagne.layers.get_all_param_values(network_le)
-	params_init_network_seg = lasagne.layers.get_all_param_values(network_seg)
+# 	params_init_network_seg = lasagne.layers.get_all_param_values(network_seg)
 	params_init_network_mlp = lasagne.layers.get_all_param_values(network_mlp)
 	params_init_network_cnn = lasagne.layers.get_all_param_values(network_cnn)
+	
+	params_init_network_recon_total = lasagne.layers.get_all_param_values(network_recon_total)
+	params_init_network_class_total = lasagne.layers.get_all_param_values(network_class_total)
+	params_init_network_le_total = lasagne.layers.get_all_param_values(network_le_total)
 
 	print("number of params for recon",lasagne.layers.count_params(network_recon))
 	print("number params for class ",lasagne.layers.count_params(network_class))
-	print("number of params for seg",lasagne.layers.count_params(network_seg))
+# 	print("number of params for seg",lasagne.layers.count_params(network_seg))
 	print("number params for LE ",lasagne.layers.count_params(network_le))
 	print("number params for mlp ",lasagne.layers.count_params(network_mlp))
 	print("number params for cnn ",lasagne.layers.count_params(network_cnn))
@@ -488,15 +664,34 @@ def main():
 	updates_class = lasagne.updates.adam(ace_class, params_class)
 	train_fn_class = theano.function([out_le, class_var], ace_class, updates=updates_class)
 	
+	# definition of what is "train" for reconstruction
+	out_recon_total = lasagne.layers.get_output(network_recon_total)
+	se_recon_total = lasagne.objectives.squared_error(out_recon_total, target_var)
+	mse_recon_total = lasagne.objectives.aggregate(se_recon_total)
+	params_recon_total = lasagne.layers.get_all_params(network_recon_total, trainable=True)
+	updates_recon_total = lasagne.updates.adam(mse_recon_total, params_recon_total)
+    #updates_recon = lasagne.updates.nesterov_momentum(mse_recon, params_recon, learning_rate=0.1, momentum=0.9)
+	train_fn_recon_total = theano.function([input_var, target_var], mse_recon_total, updates=updates_recon_total)
+	
+	# definition of what is "train" for classifier
+	out_class_total = lasagne.layers.get_output(network_class_total)
+	ce_class_total = lasagne.objectives.binary_crossentropy( out_class_total, class_var )
+    #ce_class = lasagne.objectives.categorical_crossentropy(out_class, class_var)
+	ace_class_total = lasagne.objectives.aggregate(ce_class_total)
+	params_class_total = lasagne.layers.get_all_params(network_class_total, trainable=True)
+	#updates_class = lasagne.updates.nesterov_momentum(ace_class, params_class, learning_rate=0.1, momentum=0.9)
+	updates_class_total = lasagne.updates.adam(ace_class_total, params_class_total)
+	train_fn_class_total = theano.function([out_le_total, class_var], ace_class_total, updates=updates_class_total)
+
 
 	# definition of what is "train" for segmentation
-	out_seg = lasagne.layers.get_output(network_seg)
-	se_seg = lasagne.objectives.squared_error(out_seg, seg_var)
-	mse_seg= lasagne.objectives.aggregate(se_seg)
-	params_seg = lasagne.layers.get_all_params(network_seg, trainable=True)
-	#updates_seg = lasagne.updates.nesterov_momentum(mse_seg, params_seg, learning_rate=0.1, momentum=0.9)
-	updates_seg = lasagne.updates.adam(mse_seg, params_seg)
-	train_fn_seg = theano.function([out_le, seg_var], mse_seg, updates=updates_seg)
+# 	out_seg = lasagne.layers.get_output(network_seg)
+# 	se_seg = lasagne.objectives.squared_error(out_seg, seg_var)
+# 	mse_seg= lasagne.objectives.aggregate(se_seg)
+# 	params_seg = lasagne.layers.get_all_params(network_seg, trainable=True)
+# 	#updates_seg = lasagne.updates.nesterov_momentum(mse_seg, params_seg, learning_rate=0.1, momentum=0.9)
+# 	updates_seg = lasagne.updates.adam(mse_seg, params_seg)
+# 	train_fn_seg = theano.function([out_le, seg_var], mse_seg, updates=updates_seg)
 
 	# definition of Evaluation for mlp
 	mlp = lasagne.layers.get_output(network_mlp, deterministic=True)
@@ -519,20 +714,35 @@ def main():
 	classification_acc = T.mean( T.eq( T.argmax( classification, axis=1 ), T.argmax(class_var, axis=1) ), dtype=theano.config.floatX )
 	eval_class = theano.function([out_le, class_var], [classification_ace, classification_acc] )
 
+	# definition of Evaluation for classification with LFAE using the totality of the training data
+	classification_total = lasagne.layers.get_output(network_class_total, deterministic=True)
+	classification_ce_total = lasagne.objectives.binary_crossentropy(classification_total, class_var)
+	classification_ace_total = lasagne.objectives.aggregate(classification_ce_total)
+	classification_acc_total = T.mean( T.eq( T.argmax( classification_total, axis=1 ), T.argmax(class_var, axis=1) ), dtype=theano.config.floatX )
+	eval_class_total = theano.function([out_le_total, class_var], [classification_ace_total, classification_acc_total] )
+
 	# definition of Evaluation for reconstruction
 	reconstruction = lasagne.layers.get_output(network_recon, deterministic=True)
 	reconstruction_se = lasagne.objectives.squared_error(reconstruction, target_var)
 	reconstruction_mse = lasagne.objectives.aggregate(reconstruction_se)
 	eval_recon = theano.function([input_var, target_var], reconstruction_mse)
+
+	# definition of Evaluation for reconstruction with LFAE using the totality of the training data
+	reconstruction_total = lasagne.layers.get_output(network_recon_total, deterministic=True)
+	reconstruction_se_total = lasagne.objectives.squared_error(reconstruction_total, target_var)
+	reconstruction_mse_total = lasagne.objectives.aggregate(reconstruction_se_total)
+	eval_recon_total = theano.function([input_var, target_var], reconstruction_mse_total)
 	
 	# definition of Evaluation for segmentation
-	segmentation = lasagne.layers.get_output(network_seg, deterministic=True)
-	segmentation_se = lasagne.objectives.squared_error(segmentation, seg_var)
-	segmentation_mse = lasagne.objectives.aggregate(segmentation_se)
-	eval_seg = theano.function([out_le, seg_var], segmentation_mse )
+# 	segmentation = lasagne.layers.get_output(network_seg, deterministic=True)
+# 	segmentation_se = lasagne.objectives.squared_error(segmentation, seg_var)
+# 	segmentation_mse = lasagne.objectives.aggregate(segmentation_se)
+# 	eval_seg = theano.function([out_le, seg_var], segmentation_mse )
 	
 	# get Local Encoder (LE) features
+	get_reconstruction = theano.function([input_var], out_recon_total )
 	eval_le = theano.function([input_var], out_le )
+	eval_le_total = theano.function([input_var], out_le_total )
 	
 	overall_time = time.time()
 	# mnist dataset
@@ -541,6 +751,8 @@ def main():
 	print("Loading ironoff data...")
 	X_train, l_train, c_train, y_train, z_train = load_dataset_ironoff('/home/romang/ironoff_character-train.pkl.gz')
 	X_test, l_test, c_test, y_test, z_test = load_dataset_ironoff('/home/romang/ironoff_character-test.pkl.gz')
+# 	X_train, l_train, c_train, t_train, y_train = load_dataset_ironoff('/home/romang/ironoff_charorblank-train.pkl.gz')
+# 	X_test, l_test, c_test, t_test, y_test = load_dataset_ironoff('/home/romang/ironoff_charorblank-test.pkl.gz')
     
 	Y_train = np.repeat(c_train,28*28).reshape((len(c_train), 1, 28, 28))
 	Y_test = np.repeat(c_test,28*28).reshape((len(c_test), 1, 28, 28))
@@ -569,11 +781,17 @@ def main():
 	### results for Reconstruction ###
 	OptNbSample_recon = np.zeros ( [len(seqm), len(seqn)] )
 	OptNbEpoch_recon = np.zeros ( [len(seqm), len(seqn)] )
-
 	OptMseTrain_recon = np.zeros ( [len(seqm), len(seqn)] )
 	OptMseValid_recon = np.zeros ( [len(seqm), len(seqn)] )
 	TensorMseTrain_recon = np.zeros( [len(seqm), len(seqn), num_epochs] )
 	TensorMseValid_recon = np.zeros( [len(seqm), len(seqn), num_epochs] )
+
+	OptNbSample_recon_total = np.zeros ( [len(seqm), len(seqn)] )
+	OptNbEpoch_recon_total = np.zeros ( [len(seqm), len(seqn)] )
+	OptMseTrain_recon_total = np.zeros ( [len(seqm), len(seqn)] )
+	OptMseValid_recon_total = np.zeros ( [len(seqm), len(seqn)] )
+	TensorMseTrain_recon_total = np.zeros( [len(seqm), len(seqn), num_epochs] )
+	TensorMseValid_recon_total = np.zeros( [len(seqm), len(seqn), num_epochs] )
 
 	### results for Classification ###
 	OptNbSample_mlp = np.zeros ( [len(seqm), len(seqn)] )
@@ -582,6 +800,8 @@ def main():
 	OptNbEpoch_cnn = np.zeros ( [len(seqm), len(seqn)] )
 	OptNbSample_class = np.zeros ( [len(seqm), len(seqn)] )
 	OptNbEpoch_class = np.zeros ( [len(seqm), len(seqn)] )
+	OptNbSample_class_total = np.zeros ( [len(seqm), len(seqn)] )
+	OptNbEpoch_class_total = np.zeros ( [len(seqm), len(seqn)] )
 
 	OptAceTrain_cnn = np.zeros( [len(seqm), len(seqn)] ) 
 	OptAccValid_cnn = np.zeros( [len(seqm), len(seqn)] ) 
@@ -596,6 +816,13 @@ def main():
 	TensorAceTrain_mlp = np.zeros( [len(seqm), len(seqn), num_epochs] )
 	TensorAceValid_mlp = np.zeros( [len(seqm), len(seqn), num_epochs] )
 	TensorAccValid_mlp = np.zeros( [len(seqm), len(seqn), num_epochs] )
+
+	OptAceTrain_class_total = np.zeros( [len(seqm), len(seqn)] ) 
+	OptAccValid_class_total = np.zeros( [len(seqm), len(seqn)] ) 
+	OptAceValid_class_total = np.zeros( [len(seqm), len(seqn)] ) 
+	TensorAceTrain_class_total = np.zeros( [len(seqm), len(seqn), num_epochs] )
+	TensorAceValid_class_total = np.zeros( [len(seqm), len(seqn), num_epochs] )
+	TensorAccValid_class_total = np.zeros( [len(seqm), len(seqn), num_epochs] )
 
 	OptAceTrain_class = np.zeros( [len(seqm), len(seqn)] ) 
 	OptAccValid_class = np.zeros( [len(seqm), len(seqn)] ) 
@@ -612,19 +839,30 @@ def main():
 	ArrayAccTest_class = np.zeros( [len(seqm), len(seqn)] ) 
 	ArrayAceTest_class = np.zeros( [len(seqm), len(seqn)] ) 
 	ArrayMseTest_recon = np.zeros ( [len(seqm), len(seqn)] )
+	ArrayAccTest_class_total = np.zeros( [len(seqm), len(seqn)] ) 
+	ArrayAceTest_class_total = np.zeros( [len(seqm), len(seqn)] ) 
+	ArrayMseTest_recon_total = np.zeros ( [len(seqm), len(seqn)] )
 	
 	for m in np.arange(len(seqm)) :
 		
-		lasagne.layers.set_all_param_values( network_recon, params_init_network_recon )
-		lasagne.layers.set_all_param_values( network_class, params_init_network_class )
-		lasagne.layers.set_all_param_values( network_mlp, params_init_network_mlp )
-		lasagne.layers.set_all_param_values( network_cnn, params_init_network_cnn )
+# 		lasagne.layers.set_all_param_values( network_recon_total, params_init_network_recon_total )
+# 		lasagne.layers.set_all_param_values( network_class_total, params_init_network_class_total )
+# 		lasagne.layers.set_all_param_values( network_recon, params_init_network_recon )
+# 		lasagne.layers.set_all_param_values( network_class, params_init_network_class )
+# 		lasagne.layers.set_all_param_values( network_mlp, params_init_network_mlp )
+# 		lasagne.layers.set_all_param_values( network_cnn, params_init_network_cnn )
 		
 		prop_train_s = seqm[m] 
 		print("learning supervision rate", prop_train_s,"%" )
 		for n in seqn:
 			print("re-initialize network parameters ... ")
-# 			lasagne.layers.set_all_param_values( network_enc, params_init_network_enc )
+			lasagne.layers.set_all_param_values( network_recon_total, params_init_network_recon_total )
+			lasagne.layers.set_all_param_values( network_class_total, params_init_network_class_total )
+			lasagne.layers.set_all_param_values( network_recon, params_init_network_recon )
+			lasagne.layers.set_all_param_values( network_class, params_init_network_class )
+			lasagne.layers.set_all_param_values( network_mlp, params_init_network_mlp )
+			lasagne.layers.set_all_param_values( network_cnn, params_init_network_cnn )
+	# 			lasagne.layers.set_all_param_values( network_enc, params_init_network_enc )
 # 			lasagne.layers.set_all_param_values( network_class, params_init_network_class )
 # 			print("#######")
 # # 			show_params(network_le)
@@ -659,6 +897,8 @@ def main():
 
 			X_valid_ns, y_valid_ns, Y_valid_ns, X_train_ns, y_train_ns, Y_train_ns = split_data(X_ns, y_ns, Y_ns, prop_valid )
 
+			X_v, y_v, Y_v, X_t, y_t, Y_t = np.append(X_valid_s, X_valid_ns, axis=0) , np.append(y_valid_s, y_valid_ns, axis=0), np.append(Y_valid_s, Y_valid_ns, axis=0), np.append(X_train_s, X_train_ns, axis=0) , np.append(y_train_s, y_train_ns, axis=0), np.append(Y_train_s, Y_train_ns, axis=0)
+			print("number images for Autoencoder learning (train/val):", len(X_t)+len(X_v) , "(", len(X_t), "/", len(X_v),")")
 			print("number images for supervised learning (train/val):", nb_train_s , "(", len(X_train_s), "/", len(X_valid_s),")")
 
 			print("number images for non-supervised learning (train/val):", nb_train_ns , "(", len(X_train_ns), "/", len(X_valid_ns),")")
@@ -669,18 +909,76 @@ def main():
 			###############
 			# iteration over epochs:
 			training_time = time.time()
+			
+			MseReconTotalTrain_lowest = sys.float_info.max
+			MseReconTotalVal_lowest = sys.float_info.max
+		
+			best_nbsample = 0
+			params_recon_total_best = lasagne.layers.get_all_param_values(network_recon_total)
+			
+			for e_ns in range(num_epochs):
+				train_recon_total_mse = 0
+				train_batches_total = 0
+				val_recon_total_mse = 0
+				val_batches_total = 0
+				MseReconTotalTrain = 255
+				MseReconTotalVal = 255
+				start_time = time.time()
+				#### batch TRAIN ENCODER ####
+				for batch in iterate_minibatches(X_t, X_t, y_t, Y_t, size_minibatch, shuffle=True):
+					inputs, targets, classes, segmentations = batch
+					train_recon_total_mse += train_fn_recon_total( inputs, targets )
+					train_batches_total += 1
+				
+				if train_batches_total != 0: 
+					MseReconTotalTrain = (train_recon_total_mse / train_batches_total)
+
+				#### batch VALID ENCODER ####
+				for batch in iterate_minibatches(X_v, X_v, y_v, Y_v, size_minibatch, shuffle=True):
+					inputs, targets, classes, segmentations = batch
+					val_recon_total_mse += eval_recon_total(inputs, targets)
+					val_batches_total += 1
+					
+				if val_batches_total != 0: 
+					MseReconTotalVal = (val_recon_total_mse / val_batches_total)
+				
+				if MseReconTotalVal < MseReconTotalVal_lowest:
+					MseReconTotalVal_lowest = MseReconTotalVal
+					OptMseTrain_recon_total[m][n] = MseReconTotalTrain
+					OptMseValid_recon_total[m][n] = MseReconTotalVal
+					OptNbSample_recon_total[m][n] = e_ns * len(X_t)
+					OptNbEpoch_recon_total[m][n] = e_ns
+					params_recon_total_best = lasagne.layers.get_all_param_values(network_recon_total)
+				TensorMseTrain_recon_total[m][n][e_ns] = MseReconTotalTrain
+				TensorMseValid_recon_total[m][n][e_ns] = MseReconTotalVal
+
+				t = time.time() - overall_time
+				hours, minutes, seconds = t//3600, (t - 3600*(t//3600))//60, (t - 3600*(t//3600)) - (60*((t - 3600*(t//3600))//60))
+				print("-----Train of autoencoder-----")
+				print("Total Time :", "\t%dh%dm%ds" %(hours,minutes,seconds) )
+				print("")	
+				print("Epoch: ", e_ns + 1, "/", num_epochs, "\tn: %d/%d" % (n+1,len(seqn)), "\tt: {:.3f}s".format( time.time() - start_time), "\ts: %d" %(prop_train_s), "%")
+				print("\t training recons_ad MSE:\t{:.6f} ".format( MseReconTotalTrain ) )
+				print("\t validation recons_ad MSE:\t{:.6f}".format( MseReconTotalVal ) )
+				print("")
+
+
+			
+			training_time = time.time()
 			MseReconTrain_lowest = sys.float_info.max
 			MseReconVal_lowest = sys.float_info.max
-			best_nbsample = 0
 			params_recon_best = lasagne.layers.get_all_param_values(network_recon)
-# 			if not args.no_ul:
-			if not len(y_train_ns) ==0:
+			if not len(y_train_ns) == 0:
 				for e_ns in range(num_epochs):
-						
+				
 					train_recon_mse = 0
 					train_batches = 0
 					val_recon_mse = 0
 					val_batches = 0
+						
+					MseReconTrain = 255
+					MseReconVal = 255
+					
 					start_time = time.time()
 						
 					### shuffle indices of train/valid data
@@ -696,30 +994,29 @@ def main():
 						inputs, targets, classes, segmentations = batch
 						train_recon_mse += train_fn_recon( inputs, targets )
 						train_batches += 1
-					
-					MseReconTrain = 0
+						
 					if train_batches != 0: 
 						MseReconTrain = (train_recon_mse / train_batches)
 
-	# 					#### batch VALID ENCODER ####
+					#### batch VALID ENCODER UL ####
 					for batch in iterate_minibatches(X_valid_ns, X_valid_ns, y_valid_ns, Y_valid_ns, size_minibatch, shuffle=True):
 						inputs, targets, classes, segmentations = batch
 						val_recon_mse += eval_recon(inputs, targets)
 						val_batches += 1
-					
-					MseReconVal = 0
+						
 					if val_batches != 0: 
 						MseReconVal = (val_recon_mse / val_batches)
+					
 					t = time.time() - overall_time
 					hours, minutes, seconds = t//3600, (t - 3600*(t//3600))//60, (t - 3600*(t//3600)) - (60*((t - 3600*(t//3600))//60))
-					print("-----UnSupervised-----")
+					print("-----Training of autoencoder using unlabelled data-----")
 					print("Total Time :", "\t%dh%dm%ds" %(hours,minutes,seconds) )
 					print("")	
 					print("Epoch: ", e_ns + 1, "/", num_epochs, "\tn: %d/%d" % (n+1,len(seqn)), "\tt: {:.3f}s".format( time.time() - start_time), "\ts: %d" %(prop_train_s), "%")
 					print("\t training recons MSE:\t{:.6f} ".format( MseReconTrain ) )
 					print("\t validation recons MSE:\t{:.6f}".format( MseReconVal ) )
 					print("")
-					
+						
 					TensorMseTrain_recon[m][n][e_ns] = MseReconTrain
 					TensorMseValid_recon[m][n][e_ns] = MseReconVal
 						
@@ -730,27 +1027,26 @@ def main():
 						OptNbSample_recon[m][n] = e_ns * len(X_train_ns)
 						OptNbEpoch_recon[m][n] = e_ns
 						params_recon_best = lasagne.layers.get_all_param_values(network_recon)
-						# params_nn_s_best = lasagne.layers.get_all_param_values(network_class)
-						
-					# lasagne.layers.set_all_param_values( network_enc, params_init_network_enc )
-	# 				# lasagne.layers.set_all_param_values( network_class, params_init_network_class )
-	# # 				lasagne.layers.set_all_param_values( network_enc, params_nn_ns_best )
-				lasagne.layers.set_all_param_values( network_recon, params_recon_best )
-
+			
+			
 			AccCNNTrain_highest = sys.float_info.min
 			AccCNNVal_highest = sys.float_info.min
 			AccMLPTrain_highest = sys.float_info.min
 			AccMLPVal_highest = sys.float_info.min
+			AccClassTotalTrain_highest = sys.float_info.min
+			AccClassTotalVal_highest = sys.float_info.min
 			AccClassTrain_highest = sys.float_info.min
 			AccClassVal_highest = sys.float_info.min
 			best_nbsample = 0
 			
 			
+			lasagne.layers.set_all_param_values( network_recon, params_recon_best )
+			lasagne.layers.set_all_param_values( network_recon_total, params_recon_total_best )
 			
-# 			# lasagne.layers.set_all_param_values( network_class, params_init_network_class )
 			params_cnn_best = lasagne.layers.get_all_param_values(network_cnn)
 			params_mlp_best = lasagne.layers.get_all_param_values(network_mlp)
 			params_class_best = lasagne.layers.get_all_param_values(network_class)
+			params_class_total_best = lasagne.layers.get_all_param_values(network_class_total)
 			
 # # 			set_param_trainability(network_le, False)
 			
@@ -759,12 +1055,15 @@ def main():
 				train_mlp_ace= 0
 				train_cnn_ace= 0
 				train_class_ace= 0
+				train_class_total_ace= 0
 				val_mlp_ace = 0
 				val_mlp_acc = 0
 				val_cnn_ace = 0
 				val_cnn_acc = 0
 				val_class_ace = 0
+				val_class_total_ace = 0
 				val_class_acc = 0
+				val_class_total_acc = 0
 				# val_mse = 0
 				train_batches = 0
 				val_batches = 0
@@ -782,7 +1081,9 @@ def main():
 				for batch in iterate_minibatches(X_train_s, X_train_s, y_train_s, Y_train_s, size_minibatch, shuffle=True):
 					inputs, targets, classes, segmentations = batch
 					le = eval_le( inputs )
+					le_total = eval_le_total( inputs )
 					train_class_ace += train_fn_class( le, classes )
+					train_class_total_ace += train_fn_class_total( le_total, classes )
 # 					paramsle = lasagne.layers.get_all_param_values(network_le)
 # 					paramsclass = lasagne.layers.get_all_param_values(network_class)
 # 					print("#########", np.sum(paramsle[0].reshape([1,-1])), np.sum(paramsclass[0].reshape([1,-1])) )
@@ -791,10 +1092,12 @@ def main():
 					train_batches += 1
 				
 				AceClassTrain = 0
+				AceClassTotalTrain = 0
 				AceMLPTrain = 0
 				AceCNNTrain = 0
 				if train_batches != 0: 
 					AceClassTrain = (train_class_ace / train_batches)
+					AceClassTotalTrain = (train_class_total_ace / train_batches)
 					AceMLPTrain = (train_mlp_ace / train_batches)
 					AceCNNTrain = (train_cnn_ace / train_batches)
 
@@ -811,6 +1114,10 @@ def main():
 					ace, acc = eval_class( le, classes )
 					val_class_ace += ace
 					val_class_acc += acc
+					le_total = eval_le_total( inputs )
+					ace, acc = eval_class_total( le_total, classes )
+					val_class_total_ace += ace
+					val_class_total_acc += acc
 					val_batches += 1
 				
 				AceMLPVal = 0
@@ -819,6 +1126,8 @@ def main():
 				AccCNNVal = 0
 				AceClassVal = 0
 				AccClassVal = 0
+				AceClassTotalVal = 0
+				AccClassTotalVal = 0
 				if val_batches != 0: 
 					AceMLPVal = (val_mlp_ace / val_batches)
 					AccMLPVal = (val_mlp_acc/ val_batches)
@@ -826,6 +1135,8 @@ def main():
 					AccCNNVal = (val_cnn_acc/ val_batches)
 					AceClassVal = (val_class_ace / val_batches)
 					AccClassVal = (val_class_acc/ val_batches)
+					AceClassTotalVal = (val_class_total_ace / val_batches)
+					AccClassTotalVal = (val_class_total_acc/ val_batches)
 				
 				t = time.time() - overall_time
 				
@@ -835,8 +1146,10 @@ def main():
 				print("")	
 				print("Epoch: ", e_s + 1, "/", num_epochs, "\tn: %d/%d" % (n+1,len(seqn)), "\tt: {:.3f}s".format( time.time() - start_time), "\ts: %d" %(prop_train_s), "%")
 				print("\t training class ACE:\t\t{:.6f} ".format( AceClassTrain ) )
+				print("\t training class_ad ACE:\t\t{:.6f} ".format( AceClassTotalTrain ) )
+				print("\t validation class_ad ACE:\t{:.6f} ".format( AceClassTotalVal ) )
+				print("\t validation class_ad ACC:\t{:.2f}%".format( 100*(AccClassTotalVal) )  )
 				print("\t validation class ACE:\t\t{:.6f} ".format( AceClassVal ) )
-# 				print("\t validation class ACC:\t{:.6f}".format( AccClassVal ) )
 				print("\t validation class ACC:\t\t{:.2f}%".format( 100*(AccClassVal) )  )
 				print("\t validation MLP ACC:\t\t{:.2f} %".format( 100*(AccMLPVal) ) )
 				print("\t validation CNN ACC:\t\t{:.2f} %".format( 100*(AccCNNVal) ) )
@@ -848,6 +1161,8 @@ def main():
 				TensorAccValid_cnn[m][n][e_s] = AccCNNVal
 				TensorAceValid_class[m][n][e_s] = AceClassVal
 				TensorAccValid_class[m][n][e_s] = AccClassVal
+				TensorAceValid_class_total[m][n][e_s] = AceClassTotalVal
+				TensorAccValid_class_total[m][n][e_s] = AccClassTotalVal
 				
 				if AccCNNVal > AccCNNVal_highest:
 					AccCNNVal_highest = AccCNNVal
@@ -867,6 +1182,15 @@ def main():
 					OptNbEpoch_mlp[m][n] = e_s
 					params_mlp_best = lasagne.layers.get_all_param_values(network_mlp)
 				
+				if AccClassTotalVal > AccClassTotalVal_highest:
+					AccClassTotalVal_highest = AccClassTotalVal
+					OptAceTrain_class_total[m][n] = AceClassTotalTrain
+					OptAceValid_class_total[m][n] = AceClassTotalVal
+					OptAccValid_class_total[m][n] = AccClassTotalVal
+					OptNbSample_class_total[m][n] = e_s * len(X_train_ns)
+					OptNbEpoch_class_total[m][n] = e_s
+					params_class_total_best = lasagne.layers.get_all_param_values(network_class_total)
+
 				if AccClassVal > AccClassVal_highest:
 					AccClassVal_highest = AccClassVal
 					OptAceTrain_class[m][n] = AceClassTrain
@@ -881,24 +1205,32 @@ def main():
 			###### TEST #####
 			lasagne.layers.set_all_param_values( network_recon, params_recon_best )
 			lasagne.layers.set_all_param_values( network_class, params_class_best )
+			lasagne.layers.set_all_param_values( network_recon_total, params_recon_total_best )
+			lasagne.layers.set_all_param_values( network_class_total, params_class_total_best )
 			lasagne.layers.set_all_param_values( network_mlp, params_mlp_best )
 			lasagne.layers.set_all_param_values( network_cnn, params_cnn_best )
 			
 			test_recon_mse = 0
+			test_recon_total_mse = 0
 			test_mlp_ace = 0
 			test_mlp_acc = 0
 			test_cnn_ace = 0
 			test_cnn_acc = 0
 			test_class_ace = 0
 			test_class_acc = 0
+			test_class_total_ace = 0
+			test_class_total_acc = 0
 			test_batches = 0
 			
 			start_time = time.time()
 			
 			MseReconTest = 0
 			AccClassTest = 0
+			MseReconTotalTest = 0
+			AccClassTotalTest = 0
 			AccMLPTest = 0
 			AccCNNTest = 0
+			AceClassTotalTest = 0
 			AceClassTest = 0
 			AceMLPTest = 0
 			AceCNNTest = 0
@@ -916,13 +1248,21 @@ def main():
 				ace, acc = eval_class( le, classes)
 				test_class_ace += ace
 				test_class_acc += acc
+				le_total = eval_le_total( inputs )
+				ace, acc = eval_class_total( le_total, classes)
+				test_class_total_ace += ace
+				test_class_total_acc += acc
+				test_recon_total_mse += eval_recon_total( inputs, targets )
 				test_batches += 1
-
+			
 			MseReconTest = test_recon_mse / test_batches
 			AccClassTest = test_class_acc / test_batches 
+			AceClassTest = test_class_ace / test_batches
+			MseReconTotalTest = test_recon_total_mse / test_batches
+			AccClassTotalTest = test_class_total_acc / test_batches 
+			AceClassTotalTest = test_class_total_ace / test_batches
 			AccMLPTest = test_mlp_acc / test_batches
 			AccCNNTest = test_cnn_acc / test_batches
-			AceClassTest = test_class_ace / test_batches
 			AceMLPTest = test_mlp_ace / test_batches
 			AceCNNTest = test_cnn_ace / test_batches
 			
@@ -930,6 +1270,9 @@ def main():
 			ArrayAceTest_mlp[m][n]= AceMLPTest
 			ArrayAccTest_cnn[m][n]= AccCNNTest
 			ArrayAceTest_cnn[m][n]= AceCNNTest
+			ArrayAccTest_class_total[m][n]= AccClassTotalTest
+			ArrayAceTest_class_total[m][n]= AceClassTotalTest
+			ArrayMseTest_recon_total[m][n]= MseReconTotalTest
 			ArrayAccTest_class[m][n]= AccClassTest
 			ArrayAceTest_class[m][n]= AceClassTest
 			ArrayMseTest_recon[m][n]= MseReconTest
@@ -954,6 +1297,9 @@ def main():
 			print("")	
 			print("Test Results |", "\tn: %d/%d" % (n+1,len(seqn)), "\tt: {:.3f}s".format( time.time() - training_time), "\ts: %d" %(prop_train_s), "%")
 # 			print("Test Results | supervision rate ", prop_train_s, "% | experiment ", n, "/", len(seqn) )
+			print("\t test recons_ad MSE:\t\t{:.6f}".format( MseReconTotalTest) )
+			print("\t test class_ad ACE:\t\t{:.6f}".format( AceClassTotalTest) )
+			print("\t test class_ad ACC:\t\t{:.2f} %".format( 100*(AccClassTotalTest) ) )
 			print("\t test recons MSE:\t\t{:.6f}".format( MseReconTest) )
 			print("\t test class ACE:\t\t{:.6f}".format( AceClassTest) )
 			print("\t test class ACC:\t\t{:.2f} %".format( 100*(AccClassTest) ) )
@@ -969,38 +1315,71 @@ def main():
 					OptMseValid_recon=OptMseValid_recon, 
 					TensorMseTrain_recon=TensorMseTrain_recon, 
 					TensorMseValid_recon=TensorMseValid_recon, 
+					
+					OptNbSample_recon_total=OptNbSample_recon_total, 
+					OptNbEpoch_recon_total=OptNbEpoch_recon_total, 
+					OptMseTrain_recon_total=OptMseTrain_recon_total, 
+					OptMseValid_recon_total=OptMseValid_recon_total, 
+					TensorMseTrain_recon_total=TensorMseTrain_recon_total, 
+					TensorMseValid_recon_total=TensorMseValid_recon_total, 
+					
 					OptNbSample_mlp=OptNbSample_mlp, 
 					OptNbEpoch_mlp=OptNbEpoch_mlp, 
 					OptNbSample_cnn=OptNbSample_cnn, 
 					OptNbEpoch_cnn=OptNbEpoch_cnn, 
 					OptNbSample_class=OptNbSample_class, 
 					OptNbEpoch_class=OptNbEpoch_class, 
+					OptNbSample_class_total=OptNbSample_class_total, 
+					OptNbEpoch_class_total=OptNbEpoch_class_total, 
+					
 					OptAceTrain_cnn =OptAceTrain_cnn, 
 					OptAccValid_cnn =OptAccValid_cnn, 
 					OptAceValid_cnn =OptAceValid_cnn, 
 					TensorAceTrain_cnn=TensorAceTrain_cnn, 
 					TensorAceValid_cnn=TensorAceValid_cnn, 
 					TensorAccValid_cnn=TensorAccValid_cnn, 
+					
 					OptAceTrain_mlp =OptAceTrain_mlp, 
 					OptAccValid_mlp =OptAccValid_mlp, 
 					OptAceValid_mlp =OptAceValid_mlp, 
 					TensorAceTrain_mlp=TensorAceTrain_mlp, 
 					TensorAceValid_mlp=TensorAceValid_mlp, 
 					TensorAccValid_mlp=TensorAccValid_mlp, 
+					
+					OptAceTrain_class_total =OptAceTrain_class_total, 
+					OptAccValid_class_total =OptAccValid_class_total, 
+					OptAceValid_class_total =OptAceValid_class_total, 
+					TensorAceTrain_class_total=TensorAceTrain_class_total, 
+					TensorAceValid_class_total=TensorAceValid_class_total, 
+					TensorAccValid_class_total=TensorAccValid_class_total, 
+					
 					OptAceTrain_class =OptAceTrain_class, 
 					OptAccValid_class =OptAccValid_class, 
 					OptAceValid_class =OptAceValid_class, 
 					TensorAceTrain_class=TensorAceTrain_class, 
 					TensorAceValid_class=TensorAceValid_class, 
 					TensorAccValid_class=TensorAccValid_class, 
+					
 					ArrayAccTest_mlp =ArrayAccTest_mlp, 
 					ArrayAceTest_mlp =ArrayAceTest_mlp, 
+					
 					ArrayAccTest_cnn =ArrayAccTest_cnn, 
 					ArrayAceTest_cnn =ArrayAceTest_cnn, 
+					
 					ArrayAccTest_class =ArrayAccTest_class, 
 					ArrayAceTest_class =ArrayAceTest_class, 
-					ArrayMseTest_recon=ArrayMseTest_recon )
+					
+					ArrayAccTest_class_total = ArrayAccTest_class_total, 
+					ArrayAceTest_class_total = ArrayAceTest_class_total, 
+					
+					ArrayMseTest_recon_total = ArrayMseTest_recon_total, 
+					
+					ArrayMseTest_recon = ArrayMseTest_recon )
 
+			n = np.random.randint( len(X_test) )
+			recons_img = get_reconstruction(X_test)
+			result = Image.fromarray((255*recons_img[n]).astype(np.uint8).reshape(28,28))
+			result.save('out.jpg')
 			
 # # 		print(s, m, n)
 			
